@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Purchase Order System: Business Analysis Case Study — Ishan Gupta</title>
+<meta name="description" content="A business-analysis case study for a production purchase-order system used daily across two retail locations — problem, stakeholders, requirements, business rules, user stories, tests, rollout, and results.">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <a href="../index.html" class="brand">Ishan Gupta</a>
+    <nav>
+      <a href="../index.html#projects">Projects</a>
+      <a href="mailto:ishangupta2k@gmail.com">Email</a>
+      <a href="https://github.com/ishangupta2k" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main class="article">
+  <div class="wrap-narrow">
+    <a href="../index.html#projects" class="backlink">← All projects</a>
+
+    <div class="article-head">
+      <h1>Purchase Order System: Business Analysis Case Study</h1>
+      <div class="meta">Business Intelligence &amp; Automation · July 26, 2026</div>
+      <div class="tags"><span class="tag">Data Analysis</span><span class="tag">Microsoft Excel</span><span class="tag">Jira</span><span class="tag">n8n</span><span class="tag">Automation</span></div>
+      <p class="intro"><strong>What this is:</strong> a business-analysis case study for a production purchase-order system used daily across two retail locations. It documents the problem, stakeholders, current and future state, requirements, business rules, data mapping, user stories, test coverage, rollout, and measured results.</p>
+      <div class="links">
+        <a class="btn primary" href="https://demo-inventory-dashboard.vercel.app/" target="_blank" rel="noopener">Live demo ↗</a>
+        <a class="btn" href="https://github.com/ishangupta2k/Demo-Inventory-Dashboard" target="_blank" rel="noopener">Source on GitHub ↗</a>
+      </div>
+    </div>
+
+    <div class="prose">
+      <p><strong>My role:</strong> business analyst and workflow owner. Problem definition, stakeholder elicitation, business rules, data mapping, acceptance criteria, test design, rollout, staff training, and post-launch support.</p>
+      <div class="callout"><strong>Why you can trust the detail:</strong> every business rule and test case below is traceable to running code in a public repository. The demo engine's source states that the formula, linked-scan rollup, spreadsheet parsing, and column validation are copied verbatim from the private operational app, so the rules documented here are the rules that run in production. The 14 automated tests in section 9 can be cloned and run in under a minute.</div>
+      <p><strong>Live demo:</strong> <a href="https://demo-inventory-dashboard.vercel.app/" target="_blank" rel="noopener">demo-inventory-dashboard.vercel.app</a> (sanitized sample data, no login)</p>
+
+      <nav class="toc" aria-label="Contents">
+        <ol>
+          <li><a href="#s1">Business problem and scope</a></li>
+          <li><a href="#s2">Stakeholders</a></li>
+          <li><a href="#s3">Current state process</a></li>
+          <li><a href="#s4">Future state process</a></li>
+          <li><a href="#s5">Requirements</a></li>
+          <li><a href="#s6">Business rules catalog</a></li>
+          <li><a href="#s7">Data dictionary</a></li>
+          <li><a href="#s8">User stories and acceptance criteria</a></li>
+          <li><a href="#s9">Test approach and results</a></li>
+          <li><a href="#s10">Known issues and accepted design decisions</a></li>
+          <li><a href="#s11">Rollout and training</a></li>
+          <li><a href="#s12">Results and limitations</a></li>
+          <li><a href="#s13">Traceability</a></li>
+        </ol>
+      </nav>
+
+      <h2 id="s1">1. Business problem and scope</h2>
+      <h4>Problem statement</h4>
+      <p>Daily vendor ordering across two retail locations was a manual spreadsheet process consuming roughly 6 hours per day of staff time. An order required a person to open a sales export, an inventory export, a vendor list, and an item master, then cross-reference case quantities and pack-to-single relationships by hand for each of roughly 20 vendors. The work was repetitive but not mechanical: suggested quantities still had to reflect how ordering actually worked in the store, so it could not simply be handed to a formula without encoding the store's real rules first.</p>
+      <h4>Business impact of the current state</h4>
+      <ul>
+        <li>Staff hours consumed by data assembly rather than customer-facing work.</li>
+        <li>Ordering errors from manual cross-referencing, particularly on items sold both as singles and as multi-packs.</li>
+        <li>Inconsistent ordering between the two locations and between different people doing the task.</li>
+        <li>No repeatable record of why a given quantity was ordered.</li>
+      </ul>
+      <h4>In scope</h4>
+      <ul>
+        <li>Daily purchase-order generation for 2 locations, roughly 20 vendors, and 5,000+ SKUs.</li>
+        <li>Demand calculation from point-of-sale sales and inventory exports.</li>
+        <li>Per-vendor ordering configuration.</li>
+        <li>Pack and single (linked scan code) relationships.</li>
+        <li>A human review and adjustment step before any order is placed.</li>
+        <li>Support for two different export formats as the business migrated point-of-sale platforms.</li>
+      </ul>
+      <h4>Out of scope</h4>
+      <ul>
+        <li>Automatic order submission to vendors. Final ordering decisions stay with a person by design (see BR-14).</li>
+        <li>Price, cost, or margin optimization.</li>
+        <li>Physical inventory counting or cycle counts.</li>
+        <li>Vendor contract or payment terms.</li>
+      </ul>
+      <h4>Success criteria</h4>
+      <div class="table-scroll"><table>
+        <thead><tr><th>ID</th><th>Criterion</th><th>Measure</th></tr></thead>
+        <tbody>
+          <tr><td>SC-1</td><td>Eliminate manual order assembly</td><td>Staff time on order building drops from roughly 6 hours per day to a review step</td></tr>
+          <tr><td>SC-2</td><td>Every order is reviewable before use</td><td>100% of generated orders include a calculation detail sheet and an editable adjustment column</td></tr>
+          <tr><td>SC-3</td><td>Pack and single items order correctly</td><td>Linked scan codes roll into one orderable item; no double-ordering of the same product</td></tr>
+          <tr><td>SC-4</td><td>One workflow serves both stores</td><td>Same engine and rules run for both locations and both export formats without a rebuild</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2 id="s2">2. Stakeholders</h2>
+      <div class="table-scroll"><table>
+        <thead><tr><th>Stakeholder</th><th>Interest</th><th>How I engaged them</th></tr></thead>
+        <tbody>
+          <tr><td>Store staff (order preparers)</td><td>Wants less manual work; needs output they can trust and correct</td><td>Primary requirements source. Walked the existing process with them, drafted the rules from how they actually decided quantities, and had them review generated orders against what they would have ordered by hand</td></tr>
+          <tr><td>Store manager</td><td>Wants consistent ordering across shifts and people</td><td>Reviewed the per-vendor settings and the review/approval step</td></tr>
+          <tr><td>Business owner</td><td>Wants fewer stockouts and fewer ordering errors without losing control of spend</td><td>Approved the decision to keep final ordering manual rather than fully automatic</td></tr>
+          <tr><td>Vendors (approx. 20)</td><td>Need clean, correctly formatted orders in their expected units</td><td>Constraint source: case quantities, orderable units, and vendor-specific ordering patterns</td></tr>
+          <tr><td>Point-of-sale and back-office vendors</td><td>Own the export formats the system depends on</td><td>Coordinated during the platform migration; the parser had to accept both old and new column naming</td></tr>
+        </tbody>
+      </table></div>
+      <h4>Key stakeholder conflict and resolution</h4>
+      <p>Staff wanted the system to just place the orders. The owner wanted to keep spend under human control. Resolution: the system generates a complete, ready-to-send order plus a visible calculation detail sheet and an editable final-order column. Automation handles the assembly; the person keeps the decision. This became BR-14 and drove the review-screen requirement (FR-08).</p>
+
+      <h2 id="s3">3. Current state process</h2>
+      <ol>
+        <li>Staff export a sales report from the point-of-sale system.</li>
+        <li>Staff export a current inventory report.</li>
+        <li>Staff open the vendor list and the item master to find which items belong to which vendor and what the case quantity is.</li>
+        <li>For each vendor, staff scan for items that look low, estimate recent demand from memory or by reading the sales report, and subtract what is on the shelf.</li>
+        <li>Staff manually handle items sold as both singles and multi-packs, deciding which one to order and converting between them.</li>
+        <li>Staff assemble the order in a spreadsheet and send it to the vendor.</li>
+      </ol>
+      <div class="callout"><strong>Pain points identified:</strong> steps 3 through 5 are where the time and the errors concentrate. Step 5 is the single largest source of wrong orders, because the same physical product can appear under two different scan codes with different units.</div>
+      <h4>Current-state data sources</h4>
+      <div class="table-scroll"><table>
+        <thead><tr><th>Source</th><th>Content</th><th>Problem it created</th></tr></thead>
+        <tbody>
+          <tr><td>Sales export</td><td>Units sold per scan code per date</td><td>Demand had to be eyeballed or hand-totaled per item</td></tr>
+          <tr><td>Inventory export</td><td>Current quantity per scan code</td><td>Multiple rows per item over time; unclear which is current</td></tr>
+          <tr><td>Item master</td><td>Vendor, description, case quantity, orderable flag</td><td>Lived separately from sales and inventory</td></tr>
+          <tr><td>Linked scan mapping</td><td>Which single belongs to which pack, and the conversion ratio</td><td>Existed mostly in staff knowledge, not in a file</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2 id="s4">4. Future state process</h2>
+      <ol>
+        <li>Sales and inventory exports land in a watched location on a schedule.</li>
+        <li>The engine normalizes scan codes, determines current inventory per item, and totals demand over a defined recent sales window.</li>
+        <li>Linked single sales and inventory roll into the orderable pack using the conversion ratio.</li>
+        <li>The order formula produces a suggested case quantity per item using per-vendor settings.</li>
+        <li>The system writes a vendor workbook per vendor containing the suggested order, a calculation detail sheet, and an editable final-order column.</li>
+        <li>Staff review, adjust where needed, and send.</li>
+      </ol>
+      <p><strong>Net change:</strong> staff move from assembling orders to reviewing them. The judgment step is preserved; the data assembly is not.</p>
+
+      <h2 id="s5">5. Requirements</h2>
+      <h4>Functional requirements</h4>
+      <div class="table-scroll"><table>
+        <thead><tr><th>ID</th><th>Requirement</th><th>Priority</th></tr></thead>
+        <tbody>
+          <tr><td>FR-01</td><td>Generate a purchase order per vendor from sales and inventory exports</td><td>Must</td></tr>
+          <tr><td>FR-02</td><td>Calculate suggested order quantity from recent demand, target coverage, and current inventory</td><td>Must</td></tr>
+          <tr><td>FR-03</td><td>Express suggested quantities in whole cases, never partial cases</td><td>Must</td></tr>
+          <tr><td>FR-04</td><td>Roll linked single-unit sales and inventory into the orderable pack item</td><td>Must</td></tr>
+          <tr><td>FR-05</td><td>Accept per-vendor ordering settings rather than one global setting</td><td>Must</td></tr>
+          <tr><td>FR-06</td><td>Validate uploaded workbooks and reject them with a specific, actionable message</td><td>Must</td></tr>
+          <tr><td>FR-07</td><td>Produce a calculation detail view showing how each quantity was derived</td><td>Must</td></tr>
+          <tr><td>FR-08</td><td>Provide an editable final-order column so staff can adjust before sending</td><td>Must</td></tr>
+          <tr><td>FR-09</td><td>Export the reviewed order to CSV and to a vendor-ready workbook</td><td>Must</td></tr>
+          <tr><td>FR-10</td><td>Exclude inactive and non-orderable items from generated orders</td><td>Must</td></tr>
+          <tr><td>FR-11</td><td>Surface stockout risk, dead stock, and days of supply for planning</td><td>Should</td></tr>
+          <tr><td>FR-12</td><td>Accept both legacy and current export column names during platform migration</td><td>Should</td></tr>
+        </tbody>
+      </table></div>
+      <h4>Non-functional requirements</h4>
+      <div class="table-scroll"><table>
+        <thead><tr><th>ID</th><th>Requirement</th><th>Rationale</th></tr></thead>
+        <tbody>
+          <tr><td>NFR-01</td><td>Run unattended on a daily schedule</td><td>Order prep happens before staff arrive</td></tr>
+          <tr><td>NFR-02</td><td>Public demo must run with no backend, no database, and no login</td><td>So the system can be shown publicly without exposing business data</td></tr>
+          <tr><td>NFR-03</td><td>Uploaded files in the demo stay in browser memory and are never transmitted</td><td>Privacy requirement for public sharing</td></tr>
+          <tr><td>NFR-04</td><td>Deterministic output: identical input produces identical order</td><td>Staff must be able to trust and re-verify a number</td></tr>
+          <tr><td>NFR-05</td><td>Rules must be unit-testable independently of the spreadsheet layer</td><td>So a rule change can be verified without a full run</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2 id="s6">6. Business rules catalog</h2>
+      <p>These are the operative rules, with their production default values.</p>
+      <h4>Demand and order sizing</h4>
+      <div class="table-scroll"><table>
+        <thead><tr><th>ID</th><th>Rule</th><th>Value / logic</th></tr></thead>
+        <tbody>
+          <tr><td>BR-01</td><td>Demand is measured over a recent sales window, not all history</td><td>Default 14 days, configurable per vendor</td></tr>
+          <tr><td>BR-02</td><td>The sales window ends on the most recent date present in the file, not today's date</td><td>Prevents a stale export from understating demand</td></tr>
+          <tr><td>BR-03</td><td>Daily sales rate</td><td>units sold in window / window days</td></tr>
+          <tr><td>BR-04</td><td>Target coverage: how many days of supply an order should reach</td><td>Default 21 days, configurable per vendor</td></tr>
+          <tr><td>BR-05</td><td>Existing inventory is credited against need at a discount, not at face value</td><td>Default credit factor 0.8</td></tr>
+          <tr><td>BR-06</td><td>Needed units</td><td>daily rate × target days − (credit factor × inventory)</td></tr>
+          <tr><td>BR-07</td><td>Suggested cases, always rounded up to a whole case</td><td>ceil(needed units / case quantity)</td></tr>
+          <tr><td>BR-08</td><td>If needed units is zero or negative, order nothing</td><td>Suggested cases = 0</td></tr>
+        </tbody>
+      </table></div>
+      <p>The formula in one line:</p>
+      <pre><code>dailyRate      = salesUsed / salesWindowDays
+neededUnits    = dailyRate * targetDays - inventoryCredit * max(0, inventory)
+suggestedCases = neededUnits &gt; 0 ? ceil(neededUnits / caseQty) : 0</code></pre>
+      <h4>Guards and exclusions</h4>
+      <div class="table-scroll"><table>
+        <thead><tr><th>ID</th><th>Rule</th><th>Reason</th></tr></thead>
+        <tbody>
+          <tr><td>BR-09</td><td>Items with less than 1 unit sold in the window are not ordered</td><td>No demand signal; avoids restocking dead items automatically</td></tr>
+          <tr><td>BR-10</td><td>Items with a missing or zero case quantity are not ordered</td><td>The order cannot be sized; requires master-data correction instead of a guess</td></tr>
+          <tr><td>BR-11</td><td>Negative inventory is treated as zero, never as extra need</td><td>Negative counts are a data error, not real demand</td></tr>
+          <tr><td>BR-12</td><td>Only items flagged active and orderable appear on an order</td><td>Discontinued items and non-orderable singles are excluded</td></tr>
+          <tr><td>BR-13</td><td>Current inventory for an item is taken from its most recent dated row</td><td>Exports contain multiple rows per item over time</td></tr>
+          <tr><td>BR-14</td><td>The system never places an order; it prepares one for review</td><td>Owner retains control of spend</td></tr>
+        </tbody>
+      </table></div>
+      <h4>Pack and single (linked scan code) rules</h4>
+      <div class="table-scroll"><table>
+        <thead><tr><th>ID</th><th>Rule</th><th>Logic</th></tr></thead>
+        <tbody>
+          <tr><td>BR-15</td><td>Sales of a linked single roll into the orderable pack, converted by ratio</td><td>linkedSales / conversionRatio added to pack demand</td></tr>
+          <tr><td>BR-16</td><td>Total demand for a pack is its own sales plus converted linked sales</td><td>directSales + linkedSales/ratio</td></tr>
+          <tr><td>BR-17</td><td>Inventory precedence: use the pack's own inventory when it exists and is above zero</td><td>Otherwise fall back to converted linked inventory</td></tr>
+          <tr><td>BR-18</td><td>Linked inventory fallback conversion</td><td>linkedInventory / conversionRatio</td></tr>
+        </tbody>
+      </table></div>
+      <div class="callout"><strong>Why BR-15 to BR-18 exist:</strong> the same physical product can be sold as a single and ordered as a pack, under two different scan codes. Without these rules the system would either miss demand entirely (single sales invisible to the pack) or double-order (both codes ordered separately). This was the largest source of manual error in the current-state process.</div>
+      <h4>Data normalization</h4>
+      <div class="table-scroll"><table>
+        <thead><tr><th>ID</th><th>Rule</th><th>Logic</th></tr></thead>
+        <tbody>
+          <tr><td>BR-19</td><td>Scan codes are normalized before any matching</td><td>Strip spreadsheet text wrappers, remove non-digits, strip leading zeros</td></tr>
+          <tr><td>BR-20</td><td>An all-zero scan code normalizes to 0 rather than empty</td><td>Preserves a real, if unusual, code</td></tr>
+          <tr><td>BR-21</td><td>Dates are accepted as spreadsheet date values, ISO strings, US slash format, or serial numbers</td><td>Exports are inconsistent across platforms</td></tr>
+          <tr><td>BR-22</td><td>Dates are compared on their calendar date in UTC</td><td>Prevents timezone drift from shifting an item in or out of the sales window</td></tr>
+        </tbody>
+      </table></div>
+      <h4>Planning and exception rules</h4>
+      <div class="table-scroll"><table>
+        <thead><tr><th>ID</th><th>Rule</th><th>Definition</th></tr></thead>
+        <tbody>
+          <tr><td>BR-23</td><td>Stockout risk</td><td>inventory ≤ 0 and sales &gt; 0 in the window</td></tr>
+          <tr><td>BR-24</td><td>Dead stock / no-sales inventory</td><td>inventory &gt; 0 and sales = 0 in the window</td></tr>
+          <tr><td>BR-25</td><td>Days of supply</td><td>inventory / (sales / window days)</td></tr>
+          <tr><td>BR-26</td><td>High stock</td><td>days of supply &gt; 30</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2 id="s7">7. Data dictionary</h2>
+      <h3>Input: InventoryData sheet</h3>
+      <div class="table-scroll"><table>
+        <thead><tr><th>Field</th><th>Accepted column names</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>Scan code</td><td>UPC or Scan Code</td><td>Text</td><td>Yes</td><td>Normalized per BR-19; kept as text to preserve leading zeros</td></tr>
+          <tr><td>Date</td><td>Date</td><td>Date</td><td>Yes</td><td>Used to pick the most recent row per item (BR-13)</td></tr>
+          <tr><td>Current quantity</td><td>Current Qty or In Stock or Current Inventory</td><td>Number</td><td>Yes</td><td>Clamped to a floor of 0 (BR-11)</td></tr>
+        </tbody>
+      </table></div>
+      <h3>Input: SalesHistory sheet</h3>
+      <div class="table-scroll"><table>
+        <thead><tr><th>Field</th><th>Accepted column names</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>Scan code</td><td>UPC or Scan Code</td><td>Text</td><td>Yes</td><td>Normalized per BR-19</td></tr>
+          <tr><td>Date</td><td>Date</td><td>Date</td><td>Yes</td><td>Filtered to the sales window (BR-01, BR-02)</td></tr>
+          <tr><td>Quantity sold</td><td>Qty Sold or Total Qty or Sold Qty or # Sold</td><td>Number</td><td>Yes</td><td>Summed per scan code across the window</td></tr>
+        </tbody>
+      </table></div>
+      <p>Multiple accepted names per field is a deliberate requirement (FR-12), not an accident: the business changed point-of-sale platforms and the two export formats use different headers for the same field.</p>
+      <h3>Reference data: item catalog</h3>
+      <div class="table-scroll"><table>
+        <thead><tr><th>Field</th><th>Type</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><code>full_scan_code</code></td><td>Text</td><td>Join key to sales and inventory</td></tr>
+          <tr><td><code>vendor_name</code></td><td>Text</td><td>Groups items into per-vendor orders</td></tr>
+          <tr><td><code>sku</code></td><td>Text</td><td>Vendor-facing item number</td></tr>
+          <tr><td><code>item_description</code></td><td>Text</td><td>Human-readable line on the order</td></tr>
+          <tr><td><code>case_qty</code></td><td>Number</td><td>Units per case; drives BR-07 and BR-10</td></tr>
+          <tr><td><code>active</code></td><td>Boolean</td><td>Excludes discontinued items (BR-12)</td></tr>
+          <tr><td><code>allow_order</code></td><td>Boolean</td><td>Excludes non-orderable units such as loose singles (BR-12)</td></tr>
+        </tbody>
+      </table></div>
+      <h3>Reference data: vendor settings</h3>
+      <div class="table-scroll"><table>
+        <thead><tr><th>Field</th><th>Type</th><th>Default</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><code>vendor_name</code></td><td>Text</td><td>—</td><td>Key</td></tr>
+          <tr><td><code>sales_window_days</code></td><td>Number</td><td>14</td><td>BR-01</td></tr>
+          <tr><td><code>target_days</code></td><td>Number</td><td>21</td><td>BR-04</td></tr>
+          <tr><td><code>inventory_credit</code></td><td>Number</td><td>0.8</td><td>BR-05</td></tr>
+        </tbody>
+      </table></div>
+      <h3>Reference data: linked scan codes</h3>
+      <div class="table-scroll"><table>
+        <thead><tr><th>Field</th><th>Type</th><th>Purpose</th></tr></thead>
+        <tbody>
+          <tr><td><code>vendor_name</code></td><td>Text</td><td>Scopes the link to a vendor</td></tr>
+          <tr><td><code>orderable_scan_code</code></td><td>Text</td><td>The pack that actually gets ordered</td></tr>
+          <tr><td><code>linked_scan_code</code></td><td>Text</td><td>The single that shares the product</td></tr>
+          <tr><td><code>conversion_ratio</code></td><td>Number</td><td>Singles per pack; drives BR-15 to BR-18</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2 id="s8">8. User stories and acceptance criteria</h2>
+
+      <h3>US-01 — Generate a vendor order from exports</h3>
+      <p><em>As store staff, I want a purchase order generated per vendor from the daily exports, so that I do not assemble orders by hand.</em></p>
+      <ul>
+        <li>Given valid sales and inventory exports, when the run completes, then one order is produced per vendor with items, suggested cases, and a total.</li>
+        <li>Given an item belonging to no vendor, then it does not appear on any order.</li>
+      </ul>
+
+      <h3>US-02 — Size orders from recent demand</h3>
+      <p><em>As store staff, I want quantities based on recent sales rather than a fixed reorder point, so that orders track actual movement.</em></p>
+      <ul>
+        <li>Given 28 units sold in a 14-day window, a case quantity of 4, target 21 days, and credit 0.8, when inventory is 0, then suggested cases is 11.</li>
+        <li>Given the same item with 10 units on hand, then suggested cases drops to 9.</li>
+      </ul>
+
+      <h3>US-03 — Credit existing inventory</h3>
+      <p><em>As the owner, I want stock on hand subtracted from need at a discount, so that we neither over-order nor cut it too close.</em></p>
+      <ul>
+        <li>Given inventory above zero, then needed units are reduced by 0.8 × inventory.</li>
+        <li>Given the credit is configurable per vendor, then changing it changes only that vendor's orders.</li>
+      </ul>
+
+      <h3>US-04 — Order in whole cases</h3>
+      <p><em>As store staff, I want quantities in whole cases, so that the order is placeable with the vendor.</em></p>
+      <ul>
+        <li>Given needed units of 41 and a case quantity of 4, then suggested cases is 11, not 10.25.</li>
+        <li>Given needed units at or below zero, then suggested cases is 0.</li>
+      </ul>
+
+      <h3>US-05 — Roll single sales into the pack</h3>
+      <p><em>As store staff, I want sales of a loose single counted toward the pack we actually order, so that demand is not invisible.</em></p>
+      <ul>
+        <li>Given a pack with 4 units sold and a linked single with 36 units sold at a ratio of 12, then demand used for the pack is 7.</li>
+        <li>Given the single is flagged non-orderable, then it does not appear as its own order line.</li>
+      </ul>
+
+      <h3>US-06 — Fall back to linked inventory</h3>
+      <p><em>As store staff, I want the single's shelf stock counted when the pack shows zero, so that we do not over-order a product we already have.</em></p>
+      <ul>
+        <li>Given pack inventory of 0 and linked single inventory of 24 at a ratio of 12, then inventory used for the pack is 2.</li>
+        <li>Given pack inventory above zero, then the pack's own inventory is used and the linked fallback is ignored.</li>
+      </ul>
+
+      <h3>US-07 — Configure ordering per vendor</h3>
+      <p><em>As the store manager, I want window, target days, and inventory credit set per vendor, so that fast and slow vendors are ordered differently.</em></p>
+      <ul>
+        <li>Given a vendor set to a 7-day window and 10 target days, and 14 units sold with a case quantity of 2, then suggested cases is 10.</li>
+        <li>Given no vendor override, then the defaults of 14 days, 21 target days, and 0.8 credit apply.</li>
+      </ul>
+
+      <h3>US-08 — Reject a bad upload with a clear reason</h3>
+      <p><em>As store staff, I want to be told exactly what is wrong with a file, so that I can fix the export instead of guessing.</em></p>
+      <ul>
+        <li>Given a workbook missing the quantity column, then the run fails naming the accepted alternatives: Current Qty or In Stock or Current Inventory.</li>
+        <li>Given a workbook missing a required sheet, then the message names both required sheets.</li>
+        <li>Given a sheet with headers but no data rows, then the run fails stating the sheet has no data rows.</li>
+      </ul>
+
+      <h3>US-09 — Match scan codes reliably</h3>
+      <p><em>As store staff, I want items matched despite formatting differences between exports, so that items are not silently dropped.</em></p>
+      <ul>
+        <li>Given the same product appears as 000123, 123, and a spreadsheet text-wrapped ="123", then all three match one item.</li>
+        <li>Given a code of 0000, then it normalizes to 0 and is retained.</li>
+      </ul>
+
+      <h3>US-10 — Treat negative inventory as zero</h3>
+      <p><em>As store staff, I want negative counts ignored rather than inflating an order, so that a data error does not become an over-order.</em></p>
+      <ul>
+        <li>Given inventory of −15, then the inventory credit applied is 0.</li>
+        <li>Given inventory of −15, then the item is not double-counted as extra demand.</li>
+      </ul>
+
+      <h3>US-11 — Exclude items that should not be ordered</h3>
+      <p><em>As the store manager, I want discontinued and non-orderable items kept off orders, so that we stop buying things we dropped.</em></p>
+      <ul>
+        <li>Given an item flagged inactive, then it never appears on an order.</li>
+        <li>Given an item flagged non-orderable, then it never appears even when it has sales.</li>
+      </ul>
+
+      <h3>US-12 — Review and adjust before sending</h3>
+      <p><em>As store staff, I want to change any quantity before the order goes out, so that judgment and vendor conversations still count.</em></p>
+      <ul>
+        <li>Given a generated order, then every line has an editable final-order value.</li>
+        <li>Given an edited quantity, then the order total recomputes immediately.</li>
+        <li>Given the system runs, then no order is transmitted to a vendor automatically.</li>
+      </ul>
+
+      <h3>US-13 — See why a quantity was suggested</h3>
+      <p><em>As store staff, I want the math behind each line visible, so that I can check a number I disagree with.</em></p>
+      <ul>
+        <li>Given any order line, then the calculation detail shows units sold in the window, daily rate, target days, inventory used, case quantity, and suggested cases.</li>
+        <li>Given a linked item, then the detail shows the rolled-up linked contribution.</li>
+      </ul>
+
+      <h3>US-14 — Flag exceptions for planning</h3>
+      <p><em>As the store manager, I want stockout risk and dead stock surfaced, so that I can act before a customer notices.</em></p>
+      <ul>
+        <li>Given inventory at or below 0 with sales above 0, then the item is flagged stockout risk.</li>
+        <li>Given inventory above 0 with no sales in the window, then the item is flagged no-sales inventory.</li>
+        <li>Given days of supply above 30, then the item is flagged high stock.</li>
+      </ul>
+
+      <h3>US-15 — Export the reviewed order</h3>
+      <p><em>As store staff, I want the final order exported in a vendor-ready format, so that I can send it without retyping.</em></p>
+      <ul>
+        <li>Given a reviewed order, then it exports to CSV and to a vendor workbook.</li>
+        <li>Given adjustments were made, then the export reflects the adjusted values, not the original suggestions.</li>
+      </ul>
+
+      <h2 id="s9">9. Test approach and results</h2>
+      <h4>Approach</h4>
+      <p>The order rules were deliberately built to be testable without the spreadsheet layer (NFR-05), so a rule change can be verified in seconds rather than by a full production run. Testing ran at three levels:</p>
+      <ol>
+        <li>Automated rule tests on the formula, rollup, parsing, validation, and analytics rules.</li>
+        <li>Comparison against staff-prepared orders during acceptance: generated orders were reviewed against what staff would have ordered manually, and disagreements were traced back to a rule and either corrected or accepted with a reason.</li>
+        <li>Live operation on real daily exports before staff were asked to rely on the output.</li>
+      </ol>
+      <h4>Automated test results</h4>
+      <p>14 automated tests, 14 passing. Verifiable by cloning <a href="https://github.com/ishangupta2k/Demo-Inventory-Dashboard" target="_blank" rel="noopener">github.com/ishangupta2k/Demo-Inventory-Dashboard</a> and running <code>node --test lib/engine.test.mjs lib/analysis.test.mjs</code>.</p>
+      <div class="table-scroll"><table>
+        <thead><tr><th>ID</th><th>Test case</th><th>Rules covered</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr><td>TC-01</td><td>Base order formula: 28 units / 14 days, case 4, target 21, credit 0.8 → 11 cases</td><td>BR-03 to BR-07</td><td>Pass</td></tr>
+          <tr><td>TC-02</td><td>Inventory credit reduces the order: same item with 10 on hand → 9 cases</td><td>BR-05, BR-06</td><td>Pass</td></tr>
+          <tr><td>TC-03</td><td>No sales in window → 0 cases</td><td>BR-09</td><td>Pass</td></tr>
+          <tr><td>TC-04</td><td>Missing case quantity → 0 cases, order blocked</td><td>BR-10</td><td>Pass</td></tr>
+          <tr><td>TC-05</td><td>Per-vendor window: 7-day window, target 10, 14 units, case 2 → 10 cases</td><td>BR-01, BR-04</td><td>Pass</td></tr>
+          <tr><td>TC-06</td><td>Linked single sales roll into the orderable pack (4 + 36/12 = 7)</td><td>BR-15, BR-16</td><td>Pass</td></tr>
+          <tr><td>TC-07</td><td>Linked inventory fallback when pack inventory is zero (24/12 = 2)</td><td>BR-17, BR-18</td><td>Pass</td></tr>
+          <tr><td>TC-08</td><td>Spreadsheet date values keep their UTC calendar date</td><td>BR-21, BR-22</td><td>Pass</td></tr>
+          <tr><td>TC-09</td><td>Upload missing a required column is rejected naming the alternatives</td><td>FR-06, US-08</td><td>Pass</td></tr>
+          <tr><td>TC-10</td><td>Catalog join: 168 linked singles at ratio 12 over 14 days → 2 cases, and only the orderable pack appears</td><td>BR-12, BR-15, US-05, US-11</td><td>Pass</td></tr>
+          <tr><td>TC-11</td><td>Headline totals are plain sums of the underlying rows</td><td>FR-11</td><td>Pass</td></tr>
+          <tr><td>TC-12</td><td>Stockout risk = inventory ≤ 0 and sales &gt; 0</td><td>BR-23</td><td>Pass</td></tr>
+          <tr><td>TC-13</td><td>No-sales inventory = inventory &gt; 0 and sales = 0</td><td>BR-24</td><td>Pass</td></tr>
+          <tr><td>TC-14</td><td>Days of supply and the 30-day high-stock threshold</td><td>BR-25, BR-26</td><td>Pass</td></tr>
+          <tr><td>TC-15</td><td>Top sellers ordered by units sold, highest first</td><td>FR-11</td><td>Pass</td></tr>
+          <tr><td>TC-16</td><td>Vendor summary aggregates sales, inventory, and the order</td><td>FR-11</td><td>Pass</td></tr>
+          <tr><td>TC-17</td><td>Daily sales trend fills every day in the window, including zero days</td><td>FR-11</td><td>Pass</td></tr>
+        </tbody>
+      </table></div>
+      <p style="color:var(--muted);font-size:.9rem;">TC-01 through TC-04 are assertions within a single formula test; the 17 test cases above map to 14 automated test blocks across two suites.</p>
+
+      <h2 id="s10">10. Known issues and accepted design decisions</h2>
+      <p>Documented deliberately, because each one is a real limit a reviewer should know about.</p>
+      <div class="table-scroll"><table>
+        <thead><tr><th>ID</th><th>Issue or decision</th><th>Status</th><th>Reasoning</th></tr></thead>
+        <tbody>
+          <tr><td>ID-01</td><td>Items with no sales history are never auto-ordered, so genuinely new items must be ordered manually the first time</td><td>Accepted</td><td>BR-09 protects against restocking dead inventory. The cost is a manual first order for new items, which staff already expected to place</td></tr>
+          <tr><td>ID-02</td><td>Linked inventory is a fallback, not a sum. If a pack has 1 unit on hand and its linked single has 24, the pack's own count wins</td><td>Accepted</td><td>Summing them would double-count the same physical stock. The fallback is the safer of the two errors</td></tr>
+          <tr><td>ID-03</td><td>Missing or zero case quantity silently produces no order for that item rather than an error</td><td>Accepted with mitigation</td><td>Blocking the whole run over one bad master-data row was worse. Mitigation: the item is visible in the calculation detail as zero, which surfaces the master-data gap</td></tr>
+          <tr><td>ID-04</td><td>The sales window ends on the newest date in the file, so a stale export produces a stale order</td><td>Accepted</td><td>Deliberate over using today's date, which would silently understate demand when an export is late. Detectable by staff from the dates on the detail sheet</td></tr>
+          <tr><td>ID-05</td><td>Negative inventory is clamped to zero rather than reported as an exception</td><td>Known gap</td><td>Prevents bad orders but does not fix the underlying count error. A negative-inventory exception report is the logical next iteration</td></tr>
+          <tr><td>ID-06</td><td>No formal before/after stockout measurement was captured</td><td>Known gap</td><td>See section 12. The business did not track stockout rates before the change, so the improvement is real but not quantified</td></tr>
+        </tbody>
+      </table></div>
+
+      <h2 id="s11">11. Rollout and training</h2>
+      <h4>Approach</h4>
+      <p>Phased, with the manual process kept available throughout. Nobody was asked to trust generated output before it had been checked against their own.</p>
+      <ol>
+        <li><strong>Parallel run.</strong> Orders were generated and compared against staff-prepared orders. Differences were traced to a specific rule, then either the rule was corrected or the difference was accepted with a documented reason.</li>
+        <li><strong>Rule tuning.</strong> Per-vendor window, target days, and inventory credit were adjusted from the defaults where a vendor's ordering pattern justified it.</li>
+        <li><strong>Review-first cutover.</strong> Staff moved to reviewing generated orders, with the manual path still available as a fallback.</li>
+        <li><strong>Second location.</strong> The same engine and rules were extended to the second store, then to the newer export format during the platform migration.</li>
+      </ol>
+      <h4>Training and documentation</h4>
+      <ul>
+        <li>Walkthrough of the review screen and the calculation detail sheet, focused on how to disagree with a number rather than on the tool's features. Staff needed to know what to check, not what to click.</li>
+        <li>Written runbooks for the daily workflow, including what a normal run looks like and how to spot an abnormal one.</li>
+        <li>Known-issue documentation covering the items in section 10, so a surprise had a written explanation.</li>
+        <li>Post-launch support for rule changes as vendors and product mixes changed.</li>
+      </ul>
+      <h4>Adoption</h4>
+      <p>The workflow is used daily by everyone at the business who needs it. Ordering has not reverted to the manual process.</p>
+
+      <h2 id="s12">12. Results and limitations</h2>
+      <h4>Results</h4>
+      <div class="table-scroll"><table>
+        <thead><tr><th>Outcome</th><th>Detail</th></tr></thead>
+        <tbody>
+          <tr><td>Manual order-building time eliminated</td><td>Roughly 6 hours per day of assembly replaced by a review step</td></tr>
+          <tr><td>Daily output</td><td>Approximately 20 vendor-ready purchase orders per day, prepared for staff review</td></tr>
+          <tr><td>Coverage</td><td>2 locations, roughly 20 vendors, 5,000+ SKUs</td></tr>
+          <tr><td>Ordering errors reduced</td><td>Structured, reviewable output replaced manual cross-referencing; pack/single double-ordering addressed by rule rather than by memory</td></tr>
+          <tr><td>Portability</td><td>One rule set served both locations and both point-of-sale export formats without a rebuild</td></tr>
+          <tr><td>Consistency</td><td>Ordering no longer varies by who is on shift</td></tr>
+        </tbody>
+      </table></div>
+      <h4>Limitations, stated plainly</h4>
+      <ul>
+        <li>No formal baseline was captured. The business did not track stockout rates, order-error rates, or fill rates before the change. Stockouts and missed items visibly decreased, and staff and the owner agree on that, but the improvement is not quantified and should not be presented as a measured percentage.</li>
+        <li>The 6-hour figure is an operational estimate, derived from how long the daily task took staff, not from a time study.</li>
+        <li>Single-business context. The rules encode how ordering works at these two stores. Another retailer would need its own rules, though the structure would transfer.</li>
+        <li>The public demo runs on sanitized synthetic data. It uses the same engine as production, but the demo's catalog, vendor settings, and linked mappings come from bundled fixtures rather than a live database, and no real business data is exposed.</li>
+        <li>Review remains manual by design. Throughput is bounded by staff review time, not by the system. That was the owner's requirement, not a technical limit.</li>
+      </ul>
+      <h4>What I would do next</h4>
+      <ul>
+        <li>Add the negative-inventory exception report described in ID-05, so data errors get surfaced rather than only absorbed.</li>
+        <li>Instrument the baseline that section 12 is missing: capture stockout and order-error counts going forward so the next change can be measured rather than estimated.</li>
+        <li>Add a first-order path for new items so ID-01 stops requiring staff memory.</li>
+      </ul>
+
+      <h2 id="s13">13. Traceability</h2>
+      <p>Requirements, rules, stories, and tests are cross-referenced by ID throughout so any claim on this page can be followed to its evidence:</p>
+      <ul>
+        <li><strong>Requirement to rule:</strong> FR-02 → BR-03 to BR-08. FR-04 → BR-15 to BR-18. FR-06 → BR-19 to BR-22. FR-10 → BR-12.</li>
+        <li><strong>Rule to story:</strong> BR-05 → US-03. BR-09 → US-02. BR-15 to BR-18 → US-05, US-06. BR-23 to BR-26 → US-14.</li>
+        <li><strong>Story to test:</strong> US-02 → TC-01, TC-02. US-05 → TC-06, TC-10. US-06 → TC-07. US-07 → TC-05. US-08 → TC-09. US-14 → TC-12, TC-13, TC-14.</li>
+        <li><strong>Decision to consequence:</strong> BR-14 (human keeps the decision) → FR-08 (editable final order) → US-12 → the throughput limitation in section 12.</li>
+      </ul>
+      <h4>How to verify this yourself</h4>
+      <ul>
+        <li>Open the live demo, download the sample workbook, upload it, and generate orders. The validation in US-08 and the review screen in US-12 are both exercisable in the browser.</li>
+        <li>Clone <a href="https://github.com/ishangupta2k/Demo-Inventory-Dashboard" target="_blank" rel="noopener">github.com/ishangupta2k/Demo-Inventory-Dashboard</a> and run <code>node --test lib/engine.test.mjs lib/analysis.test.mjs</code> to reproduce the 14 passing tests in section 9.</li>
+        <li>Read <code>lib/engine.mjs</code>. Its header states which parts are copied verbatim from the private operational app, and the rules in section 6 are visible in the source.</li>
+      </ul>
+
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 Ishan Gupta</span>
+    <span><a href="mailto:ishangupta2k@gmail.com">ishangupta2k@gmail.com</a> · <a href="https://github.com/ishangupta2k" target="_blank" rel="noopener">github.com/ishangupta2k</a></span>
+  </div>
+</footer>
+
+</body>
+</html>

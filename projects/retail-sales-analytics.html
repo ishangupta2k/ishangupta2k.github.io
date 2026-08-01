@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Retail Sales Analytics — Ishan Gupta</title>
+<meta name="description" content="Python + SQLite + SQL analytics over sanitized retail POS data, a published Tableau dashboard, and a grounded AI assistant.">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <a href="../index.html" class="brand">Ishan Gupta</a>
+    <nav>
+      <a href="../index.html#projects">Projects</a>
+      <a href="mailto:ishangupta2k@gmail.com">Email</a>
+      <a href="https://github.com/ishangupta2k" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main class="article">
+  <div class="wrap-narrow">
+    <a href="../index.html#projects" class="backlink">← All projects</a>
+
+    <div class="article-head">
+      <h1>Retail Sales Analytics</h1>
+      <div class="meta">Business Intelligence &amp; Automation · June 26, 2026</div>
+      <div class="tags"><span class="tag">Data Analysis</span><span class="tag">SQL</span><span class="tag">Python</span><span class="tag">SQLite</span><span class="tag">Tableau</span><span class="tag">AI</span></div>
+      <p class="intro">A retail sales + inventory analytics project over sanitized point-of-sale data: Python loads CSVs into SQLite, SQL surfaces revenue, stockout risk, and master-data gaps, a published Tableau dashboard visualizes performance, and a grounded AI assistant answers questions only from approved SQL-backed tools.</p>
+      <div class="links">
+        <a class="btn primary" href="https://public.tableau.com/views/RetailSalesAnalytics_17825124731470/RetailSalesPerformanceDepartmentRevenueDailyTrend" target="_blank" rel="noopener">Live dashboard ↗</a>
+        <a class="btn" href="https://github.com/ishangupta2k/Retail-Sales-Analytics" target="_blank" rel="noopener">Source on GitHub ↗</a>
+      </div>
+    </div>
+
+    <div class="prose">
+      <p><strong>My involvement:</strong> Sole builder — defined the business problem, modeled the data, wrote the SQL analysis and Python loaders, designed and published the Tableau dashboard, and built a grounded AI assistant with evaluation tests.</p>
+
+      <h2>The business problem</h2>
+      <p>A retail operator needs a lightweight way to review sales performance, inventory exceptions, stockout risk, and item master-data gaps from sanitized point-of-sale and inventory exports — without a heavy BI stack.</p>
+
+      <h2>The data</h2>
+      <ul>
+        <li><code>data/sales.csv</code>: daily item-level sales, 2026-05-18 to 2026-06-22 (19,098 rows, 35 distinct dates).</li>
+        <li><code>data/inventory.csv</code>: one inventory snapshot from 2026-06-23 (14,444 rows).</li>
+        <li>Sanitized: revenue is useful for relative analysis, not audited reporting. <code>scan_code</code> is loaded as text so leading zeros are preserved.</li>
+      </ul>
+
+      <h2>The approach</h2>
+      <ul>
+        <li>Load both CSVs into SQLite with a standard-library Python loader (<code>scripts/load_sqlite.py</code>).</li>
+        <li>Use SQL to compute department revenue, top sellers, daily trends, low inventory, stockout risk, overstock candidates, over/short exceptions, and sold items missing from inventory.</li>
+        <li>Build a minimal assistant that routes natural-language questions to approved SQLite-backed tools and refuses unsupported questions instead of guessing.</li>
+        <li>Add evaluation tests covering grounded answers and refusal behavior.</li>
+        <li>Document source data, assumptions, assistant design, and limitations in <code>docs/</code>.</li>
+      </ul>
+
+      <h2>Sample findings</h2>
+      <ul>
+        <li>Highest-revenue departments: BEER &amp; WINE, LOTTERY, GENERIC CIGARETTE.</li>
+        <li>Highest-revenue day: 2026-05-21 — 7,400.72 sanitized revenue, 2,533 units.</li>
+        <li>Stockout-risk query flags 1,298 items with low/negative on-hand that still have sales activity.</li>
+        <li>32 sold scan codes are missing from the inventory snapshot, pointing to item-master / inventory-file gaps.</li>
+        <li>The uncategorized (Null) department is excluded from revenue ranking and flagged as a master-data gap.</li>
+      </ul>
+
+      <h2>Skills demonstrated</h2>
+      <ul>
+        <li>Python data loading with standard-library CSV and SQLite tooling.</li>
+        <li>SQL aggregation, joins, exception queries, and business-metric design.</li>
+        <li>Dashboard/report design for sales and inventory operations (Tableau Public).</li>
+        <li>Grounded AI assistant design using approved SQL-backed tools, with refusal behavior.</li>
+        <li>Evaluation tests for grounded answers and refusals.</li>
+        <li>Data documentation: dictionary, assumptions, and limitations.</li>
+      </ul>
+
+      <h2>Limitations</h2>
+      <ul>
+        <li>No customer, receipt, basket, or loyalty data; no cost, margin, or profit fields.</li>
+        <li>Inventory is a single snapshot, not history. Revenue is sanitized/scaled.</li>
+        <li>Daily data can't explain causes like promotions, staffing, holidays, or weather.</li>
+      </ul>
+
+      <h2>Tools used</h2>
+      <ul>
+        <li><strong>Data &amp; analysis:</strong> Python (standard library), SQLite, SQL</li>
+        <li><strong>Visualization:</strong> Tableau Public</li>
+        <li><strong>AI:</strong> Grounded assistant over approved SQL-backed tools, with evaluation tests</li>
+        <li><strong>Docs:</strong> Data dictionary, assistant design notes, summary report</li>
+      </ul>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 Ishan Gupta</span>
+    <span><a href="mailto:ishangupta2k@gmail.com">ishangupta2k@gmail.com</a> · <a href="https://github.com/ishangupta2k" target="_blank" rel="noopener">github.com/ishangupta2k</a></span>
+  </div>
+</footer>
+
+</body>
+</html>

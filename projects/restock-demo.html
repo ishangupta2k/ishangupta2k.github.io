@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Restock — Interactive Purchase Order Demo &amp; AI Chatbot — Ishan Gupta</title>
+<meta name="description" content="A live, in-browser Next.js app that turns a retail spreadsheet into vendor-ready purchase orders plus an analytics dashboard — the sanitized showcase of a production tool.">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <a href="../index.html" class="brand">Ishan Gupta</a>
+    <nav>
+      <a href="../index.html#projects">Projects</a>
+      <a href="mailto:ishangupta2k@gmail.com">Email</a>
+      <a href="https://github.com/ishangupta2k" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main class="article">
+  <div class="wrap-narrow">
+    <a href="../index.html#projects" class="backlink">← All projects</a>
+
+    <div class="article-head">
+      <h1>Restock — Live Interactive Purchase Order Demo &amp; AI Chatbot</h1>
+      <div class="meta">Business Intelligence &amp; Automation · June 23, 2026</div>
+      <div class="tags"><span class="tag">TypeScript</span><span class="tag">Next.js</span><span class="tag">React</span><span class="tag">SQL</span><span class="tag">AI</span><span class="tag">Data Analysis</span></div>
+      <p class="intro">A live, in-browser web app that turns a retail sales-and-inventory spreadsheet into vendor-ready purchase orders plus an analytics dashboard — a Next.js/React front end over a tested TypeScript engine, deployed publicly so anyone can try it with no install.</p>
+      <div class="links">
+        <a class="btn primary" href="https://demo-inventory-dashboard.vercel.app/" target="_blank" rel="noopener">Try it live ↗</a>
+        <a class="btn" href="https://github.com/ishangupta2k/Demo-Inventory-Dashboard" target="_blank" rel="noopener">Source on GitHub ↗</a>
+      </div>
+      <p style="color:var(--muted);font-size:.95rem;margin-top:14px;">Upload the one-click sample workbook and watch it generate real orders.</p>
+    </div>
+
+    <div class="prose">
+      <p><strong>My involvement:</strong> Product owner and builder — defined the business problem, designed the demand formula, and built the entire application (engine, UI, tests, and public deployment).</p>
+
+      <h2>The opportunity</h2>
+      <p>This is the public, fully sanitized showcase of a private production tool that replaces hours per day of manual, per-vendor order building across convenience stores. Instead of describing the work, it lets anyone — a recruiter or hiring manager — run the actual workflow themselves in the browser: upload a spreadsheet, get vendor purchase orders, adjust them, export a CSV, and explore an analytics view.</p>
+
+      <h2>The challenges</h2>
+      <ul>
+        <li>The demand math had to mirror how ordering really works in the store — case quantities, per-vendor settings, and linked pack/single relationships.</li>
+        <li>It had to run with zero backend so it was safe to share publicly: no database, no login, no real business data.</li>
+        <li>The logic had to stay explainable — plain, documented arithmetic, not an AI black box a non-technical reviewer can't trust.</li>
+        <li>It still needed a human review step so suggested orders could be adjusted before use.</li>
+        <li>The data had to feel realistic while being completely synthetic.</li>
+      </ul>
+
+      <h2>The approach</h2>
+      <ul>
+        <li>Build the purchase-order formula as a pure, tested engine separated from the UI.</li>
+        <li>Use a browser-only architecture — everything runs client-side and state resets on refresh, so there is nothing to leak and nothing to breach.</li>
+        <li>Keep the formula documented and explainable, with no machine learning.</li>
+        <li>Add an analytics view to surface what's selling, what's at risk of stocking out, and what's overstocked.</li>
+      </ul>
+
+      <h2>The execution</h2>
+      <ul>
+        <li>Built with Next.js 16 / React 19 / TypeScript / Tailwind CSS v4 (light &amp; dark themes).</li>
+        <li>Client-side Excel parsing with validation (extension, size, required sheets and columns) before any calculation runs.</li>
+        <li>Per-vendor purchase-order engine using daily sales rate, target days, inventory credit, and suggested cases — including linked single → pack rollups so loose singles roll into their orderable case.</li>
+        <li>Editable review table where any line can be adjusted and the Final Order and totals recompute live, plus CSV export.</li>
+        <li>Analysis view: headline KPIs, a 14-day daily-sales trend, top sellers, a per-vendor summary, and stockout / no-sales / high-stock risk lists.</li>
+        <li>A <code>node --test</code> suite covering the PO formula, linked rollups, required columns, and analytics.</li>
+        <li>Deployed on Vercel from a public GitHub repository.</li>
+      </ul>
+
+      <h2>The result</h2>
+      <ul>
+        <li>Anyone can try the real workflow live in seconds — no install, no signup.</li>
+        <li>Demonstrates the exact production engine, fully sanitized of private data.</li>
+        <li>An AI chatbot assistant that runs serverless, in-browser.</li>
+        <li>Shows end-to-end ownership: business problem → demand formula → UI → tests → public deployment.</li>
+      </ul>
+
+      <h2>Tools used</h2>
+      <ul>
+        <li><strong>Core stack:</strong> TypeScript, JavaScript, React 19, Next.js 16, WebLLM</li>
+        <li><strong>Styling:</strong> Tailwind CSS v4, CSS-variable light/dark theming</li>
+        <li><strong>Data:</strong> read-excel-file (browser parser), SheetJS (dev-only), XLSX, CSV</li>
+        <li><strong>Testing &amp; build:</strong> Node built-in test runner (<code>node --test</code>), ESLint</li>
+        <li><strong>Deploy:</strong> Vercel, GitHub</li>
+      </ul>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 Ishan Gupta</span>
+    <span><a href="mailto:ishangupta2k@gmail.com">ishangupta2k@gmail.com</a> · <a href="https://github.com/ishangupta2k" target="_blank" rel="noopener">github.com/ishangupta2k</a></span>
+  </div>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Purchase Order Automation for Convenience Stores — Ishan Gupta</title>
+<meta name="description" content="A scheduled n8n and Node.js pipeline that turns daily POS reports into vendor-ready purchase orders across two stores, ~20 vendors, and 5,000+ SKUs.">
+<link rel="stylesheet" href="../style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="wrap">
+    <a href="../index.html" class="brand">Ishan Gupta</a>
+    <nav>
+      <a href="../index.html#projects">Projects</a>
+      <a href="mailto:ishangupta2k@gmail.com">Email</a>
+      <a href="https://github.com/ishangupta2k" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main class="article">
+  <div class="wrap-narrow">
+    <a href="../index.html#projects" class="backlink">← All projects</a>
+
+    <div class="article-head">
+      <h1>Purchase Order Automation for Convenience Stores</h1>
+      <div class="meta">Business Intelligence &amp; Automation · June 5, 2026</div>
+      <div class="tags"><span class="tag">Automation</span><span class="tag">n8n</span><span class="tag">Node.js</span><span class="tag">Microsoft Excel</span><span class="tag">JavaScript</span></div>
+      <p class="intro">A scheduled n8n and Node.js pipeline that turns each store's daily POS reports into vendor-ready purchase orders across 2 locations, ~20 vendors, and 5,000+ SKUs — replacing 6 hours/day of manual spreadsheet work.</p>
+      <div class="links">
+        <a class="btn primary" href="https://demo-inventory-dashboard.vercel.app/" target="_blank" rel="noopener">Try the interactive demo ↗</a>
+      </div>
+      <p style="color:var(--muted);font-size:.95rem;margin-top:14px;">A sanitized, in-browser version of this system that anyone can run with sample data, no install. (The production pipeline itself runs privately for the business.)</p>
+    </div>
+
+    <div class="prose">
+      <p><strong>My involvement:</strong> Business workflow owner, automation planner, rule designer, tester, and reviewer.</p>
+
+      <h2>The opportunity</h2>
+      <p>Vendor ordering for the stores depended on sales reports, inventory exports, vendor lists, item masters, case quantities, linked scan codes, and manual spreadsheet review. The work was repetitive, but it still required business judgment because suggested quantities had to match how ordering actually works in the store.</p>
+
+      <h2>The challenges</h2>
+      <ul>
+        <li>Sales, inventory, item, vendor, and linked scan-code data lived in separate files.</li>
+        <li>Manual order building was slow and easy to miscalculate.</li>
+        <li>Case quantities, linked scan codes, and pack/single relationships created edge cases.</li>
+        <li>Orders still needed a human review step before being used.</li>
+        <li>The same ordering logic had to run for each store without maintaining a separate system per location.</li>
+      </ul>
+
+      <h2>How the n8n workflow works</h2>
+      <p>Two n8n workflows run the pipeline every morning, one per store (Sunoco and United), both fed by the Modisoft POS. Each runs end to end through 22 nodes, with no manual step until the final review.</p>
+      <pre><code>Schedule 6:15 AM  ->  pull Modisoft reports from Gmail  ->  parse the Excel files
+  ->  sync inventory + sales into a master Excel workbook (Microsoft Graph)
+  ->  download the recalculated workbook  ->  run the Node.js generator
+  ->  vendor purchase orders ready for review</code></pre>
+      <ol>
+        <li><strong>Scheduled trigger.</strong> A Schedule Trigger fires daily at 6:15 AM, so orders are ready before the store's ordering window.</li>
+        <li><strong>Pull the day's reports from email.</strong> A Gmail node fetches that morning's Modisoft Inventory Report and Item Sales Report <code>.xlsx</code> attachments (filtered by sender, subject, and a one-day window). A Code node keeps only the latest of each, and an IF node routes the inventory and sales files down separate branches.</li>
+        <li><strong>Parse the spreadsheets.</strong> Extract-from-File nodes read each <code>.xlsx</code>, and Code nodes normalize the rows, cleaning text and preserving scan codes exactly (stripping stray <code>.0</code> and keeping leading zeros so barcodes never break).</li>
+        <li><strong>Sync into the master workbook (Microsoft Graph + Excel).</strong> The workflow locates the store's master workbook in OneDrive and, through the Microsoft Graph API, clears and rewrites the InventoryData table with the day's snapshot, then appends new rows to a running SalesHistory table. A Code node converts Excel serial dates and drops duplicates, and an IF node skips the append when there is nothing new, so sales history accumulates cleanly without double-counting.</li>
+        <li><strong>Generate the purchase orders.</strong> After a short wait for Excel to recalculate, the workflow downloads the updated workbook, writes it to the self-hosted working folder, and runs the Node.js generator through an Execute Command node. The generator applies the ordering rules (daily sales rate, target units, inventory credit, needed units, suggested cases, final order, and linked pack/single rollups) and writes per-vendor and combined purchase order workbooks, CSV exports, and a run manifest.</li>
+        <li><strong>Human review.</strong> Nothing is ordered automatically. Each workbook includes a manual-adjustment column and the underlying calculation detail, so staff confirm quantities before placing the order.</li>
+      </ol>
+      <div class="callout"><strong>Reliability built in:</strong> deduplicated, skip-when-empty sales-history appends; a recalculation wait so downloads are never stale; and the same workflow cloned per store, so a new store or vendor is a copy-and-configure, not a rebuild.</div>
+
+      <h2>The result</h2>
+      <ul>
+        <li>Eliminated 6 hours/day of manual counting, cross-referencing, and order building across both stores.</li>
+        <li>Covers ~20 vendors and 5,000+ SKUs with vendor-specific purchase order generation.</li>
+        <li>Reduced ordering errors by producing reviewable, structured outputs instead of manual spreadsheet assembly.</li>
+        <li>Scaled across both store locations (Sunoco and United) by cloning and reconfiguring the workflow per store, not rebuilding.</li>
+      </ul>
+
+      <h2>Proof</h2>
+      <ul>
+        <li><strong>Generated vendor purchase order</strong> — each vendor gets a workbook with suggested quantities, inventory credits, and a manual adjustment column for final review before placing the order.</li>
+        <li><strong>Calculation detail sheet</strong> — shows the underlying math for each SKU including daily sales rate, target units, current inventory, and linked scan-code rollups (e.g., combining pack and single sales into one orderable item).</li>
+      </ul>
+
+      <h2>Tools used</h2>
+      <ul>
+        <li><strong>Automation:</strong> n8n (Schedule trigger, Gmail, Code, HTTP / Microsoft Graph, Execute Command, IF / Merge / Wait)</li>
+        <li><strong>Core stack:</strong> Node.js, JavaScript, ExcelJS</li>
+        <li><strong>Integrations:</strong> Gmail API, Microsoft Graph (Excel Online tables), OneDrive</li>
+        <li><strong>Data formats:</strong> XLSX, CSV</li>
+        <li><strong>Infrastructure:</strong> Self-hosted n8n (Docker), GitHub, AI-assisted development</li>
+      </ul>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 Ishan Gupta</span>
+    <span><a href="mailto:ishangupta2k@gmail.com">ishangupta2k@gmail.com</a> · <a href="https://github.com/ishangupta2k" target="_blank" rel="noopener">github.com/ishangupta2k</a></span>
+  </div>
+</footer>
+
+</body>
+</html>
