@@ -44,7 +44,6 @@ body {
   color: var(--text);
   background: var(--bg);
   -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
 }
 
 ::selection { background: color-mix(in srgb, var(--accent) 24%, transparent); }
@@ -56,8 +55,7 @@ img { max-width: 100%; height: auto; }
 
 h1, h2, h3 { font-family: var(--serif); font-weight: 600; }
 
-.wrap { max-width: 760px; margin: 0 auto; padding: 0 28px; }
-.wrap-narrow { max-width: 720px; margin: 0 auto; padding: 0 28px; }
+.wrap { max-width: 720px; margin: 0 auto; padding: 0 28px; }
 
 /* ---- Top bar ---- */
 .topbar {
@@ -99,22 +97,21 @@ h1, h2, h3 { font-family: var(--serif); font-weight: 600; }
 .section-head p { color: var(--muted); margin: 8px 0 0; font-size: 1rem; }
 
 /* ---- Projects as an editorial list ---- */
-.grid { display: block; max-width: 720px; margin: 20px 0 8px; }
+.grid { display: block; margin: 20px 0 8px; }
 
-.card { position: relative; padding: 32px 0; border-bottom: 1px solid var(--line); }
+.card { padding: 32px 0; border-bottom: 1px solid var(--line); }
 .card:first-child { border-top: 1px solid var(--line); }
 .card .eyebrow { font-size: .74rem; font-weight: 500; text-transform: uppercase; letter-spacing: .11em; color: var(--faint); margin-bottom: 12px; }
 .card h3 { font-size: 1.55rem; line-height: 1.18; margin: 0 0 12px; text-wrap: balance; }
 .card h3 a { color: var(--text); }
 .card h3 a:hover { color: var(--accent); }
-.card h3 a::after { content: ""; position: absolute; inset: 0; }
 .card .summary { color: var(--muted); font-size: 1.02rem; margin: 0 0 16px; max-width: 62ch; }
 
 .tags { display: flex; flex-wrap: wrap; align-items: baseline; margin-bottom: 16px; }
 .tag { font-size: .72rem; text-transform: uppercase; letter-spacing: .07em; color: var(--faint); }
 .tag:not(:last-child)::after { content: "·"; margin: 0 .55em; color: var(--line); }
 
-.card .links { display: flex; flex-wrap: wrap; gap: 22px; font-size: .9rem; font-weight: 500; position: relative; z-index: 1; }
+.card .links { display: flex; flex-wrap: wrap; gap: 22px; font-size: .9rem; font-weight: 500; }
 .card .links a { display: inline-flex; align-items: center; gap: 5px; }
 
 /* ---- Article / case study ---- */
@@ -139,7 +136,7 @@ h1, h2, h3 { font-family: var(--serif); font-weight: 600; }
 .prose li { margin: 7px 0; }
 .prose li::marker { color: var(--faint); }
 .prose strong { font-weight: 600; color: var(--text); }
-.prose em { font-family: var(--serif); font-style: italic; font-size: 1.03em; }
+.prose em { font-family: var(--serif); font-style: italic; }
 
 .callout {
   background: var(--paper); border-left: 2px solid var(--accent);
