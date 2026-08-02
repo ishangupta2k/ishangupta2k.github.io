@@ -56,6 +56,10 @@
   ->  sync inventory + sales into a master Excel workbook (Microsoft Graph)
   ->  download the recalculated workbook  ->  run the Node.js generator
   ->  vendor purchase orders ready for review</code></pre>
+      <figure>
+        <a href="../images/automation-hero.png" target="_blank" rel="noopener"><img src="../images/automation-hero.png" alt="The n8n workflow — 22 nodes from scheduled trigger to vendor-ready orders" loading="lazy"></a>
+        <figcaption>The actual n8n workflow: 22 nodes from the 6:15 AM trigger through Gmail, Excel / Microsoft Graph sync, and the Node.js generator.</figcaption>
+      </figure>
       <ol>
         <li><strong>Scheduled trigger.</strong> A Schedule Trigger fires daily at 6:15 AM, so orders are ready before the store's ordering window.</li>
         <li><strong>Pull the day's reports from email.</strong> A Gmail node fetches that morning's Modisoft Inventory Report and Item Sales Report <code>.xlsx</code> attachments (filtered by sender, subject, and a one-day window). A Code node keeps only the latest of each, and an IF node routes the inventory and sales files down separate branches.</li>
@@ -79,6 +83,9 @@
         <li><strong>Generated vendor purchase order</strong> — each vendor gets a workbook with suggested quantities, inventory credits, and a manual adjustment column for final review before placing the order.</li>
         <li><strong>Calculation detail sheet</strong> — shows the underlying math for each SKU including daily sales rate, target units, current inventory, and linked scan-code rollups (e.g., combining pack and single sales into one orderable item).</li>
       </ul>
+      <figure><a href="../images/automation-proof-1.png" target="_blank" rel="noopener"><img src="../images/automation-proof-1.png" alt="Generated vendor purchase order workbook" loading="lazy"></a></figure>
+      <figure><a href="../images/automation-proof-2.png" target="_blank" rel="noopener"><img src="../images/automation-proof-2.png" alt="Calculation detail sheet" loading="lazy"></a></figure>
+      <figure><a href="../images/automation-proof-3.png" target="_blank" rel="noopener"><img src="../images/automation-proof-3.png" alt="Purchase order automation — screenshot" loading="lazy"></a></figure>
 
       <h2>Tools used</h2>
       <ul>

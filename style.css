@@ -172,6 +172,11 @@ td code { white-space: nowrap; }
 /* keep anchored headings clear of the sticky bar */
 .prose h2, .prose h3 { scroll-margin-top: 84px; }
 
+/* screenshots */
+.prose figure { margin: 28px 0; }
+.prose figure img { display: block; width: 100%; height: auto; border: 1px solid var(--line); border-radius: var(--radius); background: var(--paper); }
+.prose figcaption { margin-top: 9px; font-size: .82rem; color: var(--faint); }
+
 /* ---- Footer ---- */
 footer { border-top: 1px solid var(--line); margin-top: 88px; padding: 40px 0; color: var(--muted); font-size: .88rem; }
 footer .wrap { display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center; justify-content: space-between; }
