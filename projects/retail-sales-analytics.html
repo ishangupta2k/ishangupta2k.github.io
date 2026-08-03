@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Retail Sales Analytics — Ishan Gupta</title>
-<meta name="description" content="Python + SQLite + SQL analytics over sanitized retail POS data, a published Tableau dashboard, and a grounded AI assistant.">
+<meta name="description" content="Python + SQLite + SQL analytics over sanitized retail POS data, a published Tableau dashboard, a validated Power BI report, and a grounded AI assistant.">
 <link rel="stylesheet" href="../style.css">
 </head>
 <body>
@@ -27,8 +27,8 @@
     <div class="article-head">
       <h1>Retail Sales Analytics</h1>
       <div class="meta">Business Intelligence &amp; Automation · June 26, 2026</div>
-      <div class="tags"><span class="tag">Data Analysis</span><span class="tag">SQL</span><span class="tag">Python</span><span class="tag">SQLite</span><span class="tag">Tableau</span><span class="tag">AI</span></div>
-      <p class="intro">A retail sales + inventory analytics project over sanitized point-of-sale data: Python loads CSVs into SQLite, SQL surfaces revenue, stockout risk, and master-data gaps, a published Tableau dashboard visualizes performance, and a grounded AI assistant answers questions only from approved SQL-backed tools.</p>
+      <div class="tags"><span class="tag">Data Analysis</span><span class="tag">SQL</span><span class="tag">Python</span><span class="tag">SQLite</span><span class="tag">Tableau</span><span class="tag">Power BI</span><span class="tag">DAX</span><span class="tag">AI</span></div>
+      <p class="intro">A retail sales + inventory analytics project over sanitized point-of-sale data: Python loads CSVs into SQLite, SQL surfaces revenue, stockout risk, and master-data gaps, a published Tableau dashboard visualizes performance, a Power BI report rebuilds the same metrics with a semantic model and DAX and reconciles every measure against the SQL baseline, and a grounded AI assistant answers questions only from approved SQL-backed tools.</p>
       <div class="links">
         <a class="btn primary" href="https://public.tableau.com/views/RetailSalesAnalytics_17825124731470/RetailSalesPerformanceDepartmentRevenueDailyTrend" target="_blank" rel="noopener">Live dashboard ↗</a>
         <a class="btn" href="https://github.com/ishangupta2k/Retail-Sales-Analytics" target="_blank" rel="noopener">Source on GitHub ↗</a>
@@ -36,7 +36,7 @@
     </div>
 
     <div class="prose">
-      <p><strong>My involvement:</strong> Sole builder — defined the business problem, modeled the data, wrote the SQL analysis and Python loaders, designed and published the Tableau dashboard, and built a grounded AI assistant with evaluation tests.</p>
+      <p><strong>My involvement:</strong> Sole builder — defined the business problem, modeled the data, wrote the SQL analysis and Python loaders, designed and published the Tableau dashboard, built and validated a Power BI report (semantic model, Power Query, DAX), and built a grounded AI assistant with evaluation tests.</p>
 
       <figure>
         <a href="../images/retail-dashboard.png" target="_blank" rel="noopener"><img src="../images/retail-dashboard.png" alt="Tableau dashboard — department revenue and daily sales trend" loading="lazy"></a>
@@ -71,11 +71,30 @@
         <li>The uncategorized (Null) department is excluded from revenue ranking and flagged as a master-data gap.</li>
       </ul>
 
+      <h2>Power BI report</h2>
+      <p>To present the same analysis in a mainstream BI tool, I rebuilt it as a browser-built <strong>Power BI Service</strong> report on the same sanitized CSVs: a two-table semantic model (<code>inventory</code> → <code>sales</code> on <code>scan_code</code>), Power Query typing and department cleanup, and DAX measures for every KPI. The report has three pages — Executive Summary, Inventory Risk, and a Validation page.</p>
+
+      <figure>
+        <a href="../images/powerbi-executive-summary.png" target="_blank" rel="noopener"><img src="../images/powerbi-executive-summary.png" alt="Power BI Executive Summary — sales and inventory-risk KPIs with revenue visuals" loading="lazy"></a>
+        <figcaption>Executive Summary — top-level sales and inventory-risk KPIs (Power BI Service).</figcaption>
+      </figure>
+
+      <p>The point of the report is not the visuals; it is that every measure is <strong>reconciled against the SQL and CSV baseline</strong> before publishing. A dedicated Validation page logs each check as Pass/Fail against the numbers the SQL queries and raw CSVs produce.</p>
+
+      <figure>
+        <a href="../images/powerbi-validation.png" target="_blank" rel="noopener"><img src="../images/powerbi-validation.png" alt="Power BI Validation page — measures reconciled against SQL and CSV baselines, each logged Pass/Fail" loading="lazy"></a>
+        <figcaption>Validation page — Power BI measures reconciled to the SQL/CSV baseline, each logged Pass/Fail.</figcaption>
+      </figure>
+
+      <p>Validated KPIs include total revenue 146,819.68, 47,516 units, 35 sales days, 2,119 distinct sold items, 14,444 inventory items, 1,375 negative-inventory exception items, 1,328 over/short exceptions, 70 overstock/slow-moving items, and 32 sold items missing from inventory. The stockout-risk measure uses the stricter non-negative rule (259 items); negative on-hand is tracked separately as a data-quality exception. Modeling and measures are documented in <a href="https://github.com/ishangupta2k/Retail-Sales-Analytics/tree/main/docs/powerbi" target="_blank" rel="noopener"><code>docs/powerbi/</code></a> (semantic model, DAX, Power Query, source-data assessment, and validation).</p>
+
       <h2>Skills demonstrated</h2>
       <ul>
         <li>Python data loading with standard-library CSV and SQLite tooling.</li>
         <li>SQL aggregation, joins, exception queries, and business-metric design.</li>
         <li>Dashboard/report design for sales and inventory operations (Tableau Public).</li>
+        <li>Power BI semantic modeling, Power Query transformations, and DAX measures.</li>
+        <li>KPI validation: reconciling BI measures against an independent SQL/CSV baseline.</li>
         <li>Grounded AI assistant design using approved SQL-backed tools, with refusal behavior.</li>
         <li>Evaluation tests for grounded answers and refusals.</li>
         <li>Data documentation: dictionary, assumptions, and limitations.</li>
@@ -92,6 +111,7 @@
       <ul>
         <li><strong>Data &amp; analysis:</strong> Python (standard library), SQLite, SQL</li>
         <li><strong>Visualization:</strong> Tableau Public</li>
+        <li><strong>BI report:</strong> Power BI Service — semantic model, Power Query, DAX — reconciled to the SQL baseline</li>
         <li><strong>AI:</strong> Grounded assistant over approved SQL-backed tools, with evaluation tests</li>
         <li><strong>Docs:</strong> Data dictionary, assistant design notes, summary report</li>
       </ul>
